@@ -83,11 +83,14 @@ void U_Sprite::getMiddlePoint(int& xx, int& yy) const
 
 void U_Sprite::increaseRefCount() const
 {
-    *refcount += 1;
+    if(refcount) {
+        *refcount += 1;
+    }
 }
 
 void U_Sprite::decreaseRefCount() const
 {
+    if(!refcount) return;
     if(*refcount > 0) *refcount -= 1;
 }
 
@@ -109,6 +112,7 @@ void U_Sprite::setEmpty(bool flag)
 void U_Sprite::freeSprite()
 {
     // If you are the last owner then delete
+    if(!refcount) return;
     if(*refcount > 0) {
         *refcount -= 1;
     } else {

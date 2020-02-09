@@ -102,11 +102,11 @@ void Asteroid::unUpdate(const UpdateData& data)
 }
 
 
-std::vector<Asteroid>&& Asteroid::breakInPieces(const GameObject& obj)
+std::vector<Asteroid> Asteroid::breakInPieces(const GameObject& obj)
 {
     if(this->type == AsteroidType::SMALL) {
         this->setEmpty(true);
-        std::move(std::vector<Asteroid>());
+        return std::vector<Asteroid>();
     } else {
         std::vector<Asteroid> asteroids;
 
@@ -132,6 +132,17 @@ std::vector<Asteroid>&& Asteroid::breakInPieces(const GameObject& obj)
         asteroids[1].setMovement(
                 util::lengthWithAngleToVector(obj_angle + angle, speed), {0,0});
 
-        std::move(asteroids);
+        return asteroids;
     }
+}
+
+bool operator<(const Asteroid& a, const Asteroid& b)
+{
+    Vector2D<float> a_pos;
+    Vector2D<float> b_pos;
+
+    a.getPosition(a_pos.x, a_pos.y);
+    b.getPosition(b_pos.x, b_pos.y);
+
+    return !a.empty() && a_pos < b_pos;
 }

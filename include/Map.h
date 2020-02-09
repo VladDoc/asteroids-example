@@ -23,6 +23,9 @@ class Map
         std::vector<Asteroid> asteroids;
         Vector2D<int> mapSize;
         std::vector<Bullet> bullets;
+
+        size_t remainingAsteroids;
+        size_t remainingBullets;
     private:
 };
 

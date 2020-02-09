@@ -1,6 +1,8 @@
 #ifndef VECTOR2D_H
 #define VECTOR2D_H
 
+#include <utility>
+#include <tuple>
 
 template <typename T>
 struct Vector2D
@@ -12,7 +14,7 @@ struct Vector2D
     Vector2D(const Vector2D<T>& vec) : x(vec.x), y(vec.y) {}
 
     template<typename V>
-    Vector2D<T>& operator+(const Vector2D<V> &another)
+    Vector2D<T> operator+(const Vector2D<V> &another)
     {
         this->x += another.x;
         this->y += another.y;
@@ -30,7 +32,7 @@ struct Vector2D
     }
 
     template<typename V>
-    Vector2D<T>& operator-(const Vector2D<V> &another)
+    Vector2D<T> operator-(const Vector2D<V> &another)
     {
         this->x -= another.x;
         this->y -= another.y;
@@ -39,7 +41,7 @@ struct Vector2D
     }
 
     template<typename V>
-    Vector2D<T> operator-=(const Vector2D<V> &another)
+    Vector2D<T>& operator-=(const Vector2D<V> &another)
     {
         this->x -= another.x;
         this->y -= another.y;
@@ -52,6 +54,12 @@ struct Vector2D
     {
         return Vector2D<V>{static_cast<V>(x),
                            static_cast<V>(y)};
+    }
+
+    template<typename V>
+    bool operator<(const Vector2D<V>& b) const
+    {
+        return std::tie(x, y) < std::tie(b.x, b.y);
     }
 };
 

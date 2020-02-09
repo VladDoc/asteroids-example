@@ -58,6 +58,17 @@ class GameObject
         virtual void setMass(float mass) final;
 
         virtual void getMass(float& mass) const final;
+
+        bool operator<(const GameObject& b)
+        {
+            Vector2D<float> a_pos;
+            Vector2D<float> b_pos;
+
+            this->getPosition(a_pos.x, a_pos.y);
+            b.getPosition(b_pos.x, b_pos.y);
+
+            return a_pos < b_pos;
+        }
     protected:
         // Your collision boundaries may differ from the sprite ones
         float collision_radius{};

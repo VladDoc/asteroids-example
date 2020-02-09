@@ -26,13 +26,15 @@ class Asteroid : public GameObject
 
         virtual void update(const UpdateData& data) override;
         virtual void unUpdate(const UpdateData& data) override;
-        virtual std::vector<Asteroid>&& breakInPieces(const GameObject& obj);
+        virtual std::vector<Asteroid> breakInPieces(const GameObject& obj);
 
         static constexpr float maxSpeed = 0.05f;
+        friend bool operator<(const Asteroid& a, const Asteroid& b);
     protected:
         AsteroidType type;
     private:
 
 };
 
+bool operator<(const Asteroid& a, const Asteroid& b);
 #endif // Asteroid_H

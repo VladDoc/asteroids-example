@@ -39,6 +39,8 @@ Player::Player() : GameObject(paths[0])
     position.y = sprite_.y;
 
     current = 0;
+
+    collision_radius *= 0.65;
 }
 
 Player::Player(float x, float y, float angle) : GameObject(paths[0])
@@ -102,7 +104,7 @@ void Player::update(const UpdateData& data)
     }
 
     sprite_angle = util::clampLooping(sprite_angle, 0.0f,
-                                      2 * pi - 0.00001); // For extra safety;
+                                      2 * pi - 0.00001); // For extra safety
 
     if(data.controls.isUpHeld)    {
         accel.x = util::interpolateValue(util::uintPow(data.frametime, 2),

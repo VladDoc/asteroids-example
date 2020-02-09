@@ -50,17 +50,23 @@ void Asteroid::update(const UpdateData& data)
 {
     using namespace Constants;
 
-    if(data.controls.isRightHeld) motionDelta.x += Player::defSpeed;
-    if(data.controls.isLeftHeld)  motionDelta.x -= Player::defSpeed;
-    if(data.controls.isUpHeld)    motionDelta.y -= Player::defSpeed;
-    if(data.controls.isDownHeld)  motionDelta.y += Player::defSpeed;
+    Vector2D<float> motionDelta;
+    Vector2D<float> playersPos;
+
+    data.player->getMiddlePoint(playersPos.x, playersPos.y);
+
+    motionDelta.x = playersPos.x - data.mapBoundaries.x / 2;
+    motionDelta.y = playersPos.y - data.mapBoundaries.y / 2;
 
     position = position - motionDelta;
 
-    velocity.x += accel * data.frametime;
-    velocity.y += accel * data.frametime;
+    velocity.x += accel.x * data.frametime;
+    velocity.y += accel.y * data.frametime;
 
     position = position + velocity;
+
+    position.x = util::clampLooping(position.x, 0.0f, data.mapBoundaries.x);
+    position.y = util::clampLooping(position.y, 0.0f, data.mapBoundaries.y);
 
     sprite_.x = (int)position.x;
     sprite_.y = (int)position.y;
@@ -73,19 +79,23 @@ void Asteroid::unUpdate(const UpdateData& data)
 {
     using namespace Constants;
 
-    Vector2D<int> motionDelta;
+    Vector2D<float> motionDelta;
+    Vector2D<float> playersPos;
 
-    if(data.controls.isRightHeld) motionDelta.x =  Player::defSpeed;
-    if(data.controls.isLeftHeld)  motionDelta.x = -Player::defSpeed;
-    if(data.controls.isUpHeld)    motionDelta.y = -Player::defSpeed;
-    if(data.controls.isDownHeld)  motionDelta.y =  Player::defSpeed;
+    data.player->getMiddlePoint(playersPos.x, playersPos.y);
+
+    motionDelta.x = playersPos.x - data.mapBoundaries.x / 2;
+    motionDelta.y = playersPos.y - data.mapBoundaries.y / 2;
 
     position = position + motionDelta;
 
-    velocity.x += accel * data.frametime;
-    velocity.y += accel * data.frametime;
+    velocity.x -= accel.x * data.frametime;
+    velocity.y -= accel.y * data.frametime;
 
-    position = position - velocity;
+    position = position + velocity;
+
+    position.x = util::clampLooping(position.x, 0.0f, data.mapBoundaries.x);
+    position.y = util::clampLooping(position.y, 0.0f, data.mapBoundaries.y);
 
     sprite_.x = (int)position.x;
     sprite_.y = (int)position.y;
@@ -111,16 +121,16 @@ std::vector<Asteroid>&& Asteroid::breakInPieces(const GameObject& obj)
         float speed = 1.0f / ((float)rand() / (RAND_MAX + 1));
 
         Vector2D<float> obj_vel;
-        float whatever;
+        Vector2D<float> obj_acc;
 
-        obj.getMovement(obj_vel, whatever);
+        obj.getMovement(obj_vel, obj_acc);
 
         float obj_angle = util::vectorAngle(obj_vel.x, obj_vel.y);
 
         asteroids[0].setMovement(
-                util::lengthWithAngleToVector(obj_angle - angle, speed), 0.0f);
+                util::lengthWithAngleToVector(obj_angle - angle, speed), {0,0});
         asteroids[1].setMovement(
-                util::lengthWithAngleToVector(obj_angle + angle, speed), 0.0f);
+                util::lengthWithAngleToVector(obj_angle + angle, speed), {0,0});
 
         std::move(asteroids);
     }

@@ -5,19 +5,24 @@
 
 #include "UpdateData.h"
 #include "Asteroid.h"
-
+#include "Vector2d.h"
+#include "Bullet.h"
+#include "Player.h"
 
 class Map
 {
     public:
-        Map(int asteroids_qty, int max_bullets);
+        Map(int asteroids_qty, int max_bullets,
+            const Vector2D<int>& mapSize,
+            const Player& player);
+
         virtual ~Map();
-
-
         virtual void update(const UpdateData& data);
+        virtual void draw(const UpdateData& data);
     protected:
         std::vector<Asteroid> asteroids;
-        //std::vector<>
+        Vector2D<int> mapSize;
+        std::vector<Bullet> bullets;
     private:
 };
 

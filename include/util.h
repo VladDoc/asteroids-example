@@ -28,7 +28,7 @@ namespace util
     // Works only for positive min and max
     inline float clampLooping(float value, float min, float max) {
         int howManyTimesMax = value / max;
-        return value > 0 ? (value - (howManyTimesMax * max))
+        return value >= 0 ? (value - (howManyTimesMax * max))
                          : max + (value - (howManyTimesMax * max));
 
     }
@@ -68,9 +68,13 @@ namespace util
 
     constexpr float radToDeg(float rad)
     {
-        return rad * (180 / Constants::pi);
+        return rad * (180.0f / Constants::pi);
     }
 
+    constexpr float degToRad(float deg)
+    {
+        return deg * (Constants::pi / 180);
+    }
 
     template <typename T>
     inline float vectorAngle(T x, T y)
@@ -92,6 +96,34 @@ namespace util
 
         return {std::sin(angle) * length,
                 std::cos(angle) * length};
+    }
+
+    inline int twoIndeciesIntoOne(int i, int j, int width)
+    {
+        return i * width + j;
+    }
+
+    inline void oneIndexIntoTwo(int index, int width, int& i, int& j)
+    {
+        i = index / width;
+        j = index - (index / width) * width;
+    }
+
+    template <typename T>
+    inline bool withinArea(Vector2D<T> src, Vector2D<T> dest, float radius)
+    {
+        check(src.x);
+
+        T dx = src.x - dest.x;
+        T dy = src.x - dest.x;
+
+        float distance = std::hypot(dx, dy);
+
+        if(distance < radius) {
+            return true;
+        }
+
+        return false;
     }
 }
 

@@ -28,9 +28,9 @@ class Asteroid : public GameObject
         virtual void unUpdate(const UpdateData& data) override;
         virtual std::vector<Asteroid>&& breakInPieces(const GameObject& obj);
 
+        static constexpr float maxSpeed = 0.05f;
     protected:
         AsteroidType type;
-        Vector2D<int> motionDelta;
     private:
 
 };

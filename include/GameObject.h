@@ -7,6 +7,8 @@
 #include "UpdateData.h"
 #include "Vector2d.h"
 
+class UpdateData;
+
 class GameObject
 {
     public:
@@ -18,6 +20,7 @@ class GameObject
         virtual void update(const UpdateData&) = 0;
         virtual void unUpdate(const UpdateData&) = 0;
         virtual void draw() const;
+        virtual void draw(const UpdateData& data) const;
 
         virtual bool checkCollision(const GameObject& another) const;
 
@@ -27,6 +30,7 @@ class GameObject
         const U_Sprite& getU_Sprite() const;
 
         virtual void setCollisionRadius(float) final;
+        virtual void getCollisionRadius(float&) const final;
 
         virtual void setSprite(const char* path) final;
         virtual void setSprite(const U_Sprite&) final;
@@ -34,11 +38,14 @@ class GameObject
         virtual void setPosition(float x, float y) final;
         virtual void getPosition(float &x, float &y) const final;
 
-        virtual void setMovement(Vector2D<float> speed,
-                                 float acceleration = 0.0f) final;
+        virtual void setMiddlePoint(float x, float y) final;
+        virtual void getMiddlePoint(float &x, float &y) const final;
+
+        virtual void setMovement(const Vector2D<float>& speed,
+                                 const Vector2D<float>& acceleration) final;
 
         virtual void getMovement(Vector2D<float>& speed,
-                                 float& acceleration) const final;
+                                 Vector2D<float>& acceleration) const final;
 
         virtual void setRotation(float speed,
                                  float acceleration = 0.0f,
@@ -56,8 +63,9 @@ class GameObject
         float collision_radius{};
 
         Vector2D<float> velocity{};
+        Vector2D<float> accel{};
         Vector2D<float> position{};
-        float accel{};
+
         float mass{};
 
         U_Sprite sprite_;

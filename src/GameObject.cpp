@@ -56,6 +56,27 @@ void GameObject::draw() const
     sprite_.draw();
 }
 
+void GameObject::draw(const UpdateData& data) const
+{
+    if(sprite_.empty()) return;
+    // Draw two sprites if object crosses the line
+    Vector2D<int> overlap{0,0};
+    if((sprite_.x + sprite_.w) > data.mapBoundaries.x)
+    {
+        overlap.x = sprite_.x - data.mapBoundaries.x;
+    }
+
+    if((sprite_.y + sprite_.h) > data.mapBoundaries.y)
+    {
+        overlap.y = sprite_.y - data.mapBoundaries.y;
+    }
+    drawSprite((Sprite*)sprite_.getSprite(),
+                    sprite_.x, sprite_.y);
+
+    drawSprite((Sprite*)sprite_.getSprite(),
+               overlap.x ? overlap.x : sprite_.x,
+               overlap.y ? overlap.y : sprite_.y);
+}
 
 bool GameObject::empty() const
 {
@@ -77,6 +98,11 @@ void GameObject::setCollisionRadius(float value)
     this->collision_radius = value;
 }
 
+void GameObject::getCollisionRadius(float& value) const
+{
+    value = this->collision_radius;
+}
+
 void GameObject::setPosition(float x, float y)
 {
     position.x = x;
@@ -93,6 +119,22 @@ void GameObject::getPosition(float& x, float& y) const
     y = position.y;
 }
 
+void GameObject::setMiddlePoint(float x, float y)
+{
+    position.x = x - sprite_.w / 2;
+    position.y = y - sprite_.h / 2;
+
+    sprite_.x = (int)x;
+    sprite_.y = (int)y;
+
+}
+
+void GameObject::getMiddlePoint(float& x, float& y) const
+{
+    x = position.x + sprite_.w / 2;
+    y = position.y + sprite_.h / 2;
+}
+
 void GameObject::setSprite(const U_Sprite& sprite)
 {
     this->sprite_ = sprite;
@@ -105,15 +147,15 @@ void GameObject::setSprite(const char* path)
 }
 
 
-void GameObject::setMovement(Vector2D<float> speed,
-                             float acceleration)
+void GameObject::setMovement(const Vector2D<float>& speed,
+                             const Vector2D<float>& acceleration)
 {
     this->velocity = speed;
     this->accel = acceleration;
 }
 
 void GameObject::getMovement(Vector2D<float>& speed,
-                             float& acceleration) const
+                             Vector2D<float>& acceleration) const
 {
     speed = this->velocity;
     acceleration = this->accel;

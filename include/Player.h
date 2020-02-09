@@ -15,15 +15,16 @@ class Player : public GameObject
         virtual void update(const UpdateData& data) override;
         virtual void unUpdate(const UpdateData& data) override;
         virtual void draw() const override;
+        virtual void draw(const UpdateData& data) const override;
 
-
-        constexpr static const float defSpeed = 1.0f;
-        constexpr static const float defAccel = 1.5f;
+        constexpr static const float defSpeed = 0.1f;
+        constexpr static const float defAccel = 0.0001f;
+        constexpr static const float maxSpeed = 0.001f;
     protected:
         static const int angles = 8;
         U_Sprite angleSprites[angles];
-        Sprite* current;
-        Vector2D<int> motionDelta;
+        size_t current;
+        Vector2D<float> motionDelta;
     private:
 
 };

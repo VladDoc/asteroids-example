@@ -11,6 +11,7 @@
 #include "Player.h"
 #include "Constants.h"
 #include "stdoutRedirect.h"
+#include "Map.h"
 
 /* Test Framework realization */
 class MyFramework : public Framework {
@@ -52,6 +53,8 @@ class MyFramework : public Framework {
 
     std::unique_ptr<U_Sprite> cursor;
 
+    std::unique_ptr<Map> map;
+
     UpdateData upData;
 
     ControlState state;
@@ -73,19 +76,23 @@ public:
         showCursor(false);
 
         asteroid = std::make_unique<Asteroid>(AsteroidType::SMALL);
-
         asteroid->setPosition(40, 40);
-        asteroid->setMovement(Vector2D<float>{0, 0}, 0);
+        asteroid->setMovement({0, 0}, {0, 0});
 
         bg = std::make_unique<BackGround>();
 
         player = std::make_unique<Player>();
-        player->setRotation(0.0f, 0.0f, 0.0f);
-
-        player->setPosition(400, 300);
+        player->setMiddlePoint(400, 300);
 
         cursor = std::make_unique<U_Sprite>("data/circle.tga");
+
+        map = std::make_unique<Map>(50, 2, Vector2D<int>{800, 600}, *player);
+
         upData.frametime = 15;
+        upData.player = player.get();
+        //upData.controls.isUpHeld ;
+
+        getScreenSize(upData.mapBoundaries.x, upData.mapBoundaries.y);
 
 
         enemy_ = createSprite("data/small_asteroid.png");
@@ -132,14 +139,18 @@ public:
         time_t start = clock();
         bg->draw();
 
-        asteroid->update(upData);
-
-        asteroid->draw();
+//        asteroid->update(upData);
+//
+//        asteroid->draw(upData);
 
 
         player->update(upData);
 
         player->draw();
+
+        map->update(upData);
+
+        map->draw(upData);
 
         cursor->x = upData.mouseCoords.x - cursor->w / 2;
         cursor->y = upData.mouseCoords.y - cursor->h / 2;

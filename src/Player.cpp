@@ -1,5 +1,6 @@
 #include <string>
 #include <cmath>
+#include <limits>
 
 #include "Framework.h"
 #include "Player.h"
@@ -37,7 +38,7 @@ Player::Player() : GameObject(paths[0])
     position.x = sprite_.x;
     position.y = sprite_.y;
 
-    current = (Sprite*)angleSprites[0].getSprite();
+    current = 0;
 }
 
 Player::Player(float x, float y, float angle) : GameObject(paths[0])
@@ -46,9 +47,7 @@ Player::Player(float x, float y, float angle) : GameObject(paths[0])
 
     int whichSprite = sprite_angle / (Constants::pi / 4);
 
-    current = (Sprite*)angleSprites[whichSprite].getSprite();
-
-    accel = defAccel;
+    current = whichSprite;
 
     position.x = x;
     position.y = y;
@@ -64,38 +63,89 @@ Player::~Player()
 
 void Player::draw() const
 {
-    drawSprite(current, sprite_.x, sprite_.y);
+    drawSprite((Sprite*)angleSprites[current].getSprite(),
+                sprite_.x, sprite_.y);
+}
+
+void Player::draw(const UpdateData& data) const
+{
+    // Draw two sprites if object crosses the line
+    Vector2D<int> overlap{0,0};
+    if((sprite_.x + angleSprites[current].w) > data.mapBoundaries.x)
+    {
+        overlap.x = sprite_.x - data.mapBoundaries.x;
+    }
+
+    if((sprite_.y + angleSprites[current].h) > data.mapBoundaries.y)
+    {
+        overlap.y = sprite_.y - data.mapBoundaries.y;
+    }
+    drawSprite((Sprite*)angleSprites[current].getSprite(),
+                    sprite_.x, sprite_.y);
+
+    drawSprite((Sprite*)angleSprites[current].getSprite(),
+               overlap.x ? overlap.x : sprite_.x,
+               overlap.y ? overlap.y : sprite_.y);
 }
 
 void Player::update(const UpdateData& data)
 {
     using namespace Constants;
 
-    if(data.controls.isRightHeld) motionDelta.x += Player::defSpeed;
-    if(data.controls.isLeftHeld)  motionDelta.x -= Player::defSpeed;
-    if(data.controls.isUpHeld)    motionDelta.y -= Player::defSpeed;
-    if(data.controls.isDownHeld)  motionDelta.y += Player::defSpeed;
-
-
-    if(motionDelta.x == 0 &&
-       motionDelta.y == 0) {
-    } else {
-        sprite_angle = util::vectorAngle(motionDelta.x, motionDelta.y);
-
-        int whichSprite = (sprite_angle + 0.01) / (Constants::pi / 4);
-
-        current = (Sprite*)angleSprites[whichSprite].getSprite();
+    if(data.controls.isRightHeld) {
+        sprite_angle += util::interpolateValue(data.frametime,
+                                               util::degToRad(5.0f));
     }
-//    Vector2D<float> interpolated;
-//    interpolated.x = util::interpolateValue(data.frametime, (float)motionDelta.x);
-//    interpolated.y = util::interpolateValue(data.frametime, (float)motionDelta.y);
-//
-//    position = position + interpolated;
-//
-//    sprite_.x += position.x;
-//    sprite_.y += position.y;
+    if(data.controls.isLeftHeld)  {
+        sprite_angle -= util::interpolateValue(data.frametime,
+                                               util::degToRad(5.0f));
+    }
 
-      data.setPlayer(this);
+    sprite_angle = util::clampLooping(sprite_angle, 0.0f,
+                                      2 * pi - 0.00001); // For extra safety;
+
+    if(data.controls.isUpHeld)    {
+        accel.x = util::interpolateValue(util::uintPow(data.frametime, 2),
+                                          sinf(sprite_angle) * defAccel);
+        accel.y = util::interpolateValue(util::uintPow(data.frametime, 2),
+                                         -cosf(sprite_angle) * defAccel);
+    }
+    if(data.controls.isDownHeld)  {
+        accel.x = util::interpolateValue(util::uintPow(data.frametime, 2),
+                                         -sinf(sprite_angle) * defAccel);
+        accel.y = util::interpolateValue(util::uintPow(data.frametime, 2),
+                                          cosf(sprite_angle) * defAccel);
+    }
+
+    velocity = velocity + accel;
+
+    accel.x = 0;
+    accel.y = 0;
+
+    velocity.x = util::clamp(velocity.x, -maxSpeed, maxSpeed);
+    velocity.y = util::clamp(velocity.y, -maxSpeed, maxSpeed);
+
+    motionDelta.x = velocity.x;
+    motionDelta.y = velocity.y;
+
+    motionDelta.x = util::interpolateValue(data.frametime, motionDelta.x);
+    motionDelta.y = util::interpolateValue(data.frametime, motionDelta.y);
+
+
+    position = position + motionDelta;
+
+    position.x = util::clampLooping(position.x, 0.0f, data.mapBoundaries.x);
+    position.y = util::clampLooping(position.y, 0.0f, data.mapBoundaries.y);
+
+    int whichSprite = (sprite_angle) / (Constants::pi / 4);
+
+    //whichSprite = util::clampLooping(whichSprite, 0, angles-1);
+
+    current = whichSprite;
+
+//    sprite_.x = position.x;
+//    sprite_.y = position.y;
+
 }
 
 void Player::unUpdate(const UpdateData& data)

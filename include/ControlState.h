@@ -4,10 +4,14 @@
 
 struct ControlState
 {
-    bool isLeftHeld;
-    bool isRightHeld;
-    bool isUpHeld;
-    bool isDownHeld;
+    bool isLeftHeld{};
+    bool isRightHeld{};
+    bool isUpHeld{};
+    bool isDownHeld{};
+
+    bool leftMouseButton{};
+    bool rightMouseButton{};
+    bool middleMouseButton{};
 };
 
 #endif // CONTROLSTATE_H

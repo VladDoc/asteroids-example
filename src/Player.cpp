@@ -71,23 +71,55 @@ void Player::draw() const
 
 void Player::draw(const UpdateData& data) const
 {
+    if(sprite_.empty()) return;
+
+    if(this->position.x >= data.screenSize.x / 2 &&
+       this->position.y >= data.screenSize.y / 2
+                                                  ||
+       this->position.x <= data.mapBoundaries.x - data.screenSize.x / 2 &&
+       this->position.y <= data.mapBoundaries.y - data.screenSize.y / 2) {
+            this->draw();
+            return;
+       }
+
     // Draw two sprites if object crosses the line
-    Vector2D<int> overlap{0,0};
-    if((sprite_.x + angleSprites[current].w) > data.mapBoundaries.x)
+    Vector2D<float> overlap{0,0};
+
+    Vector2D<float> screenSpaceOverlap;
+
+    Vector2D<float> screenSpace;
+
+    util::mapToScreenSpace(screenSpace, data.screenSize,
+                           position, data.mapBoundaries);
+
+    bool shouldDrawTwice = false;
+    if((position.x + sprite_.w) > data.mapBoundaries.x)
     {
-        overlap.x = sprite_.x - data.mapBoundaries.x;
+        overlap.x = position.x - data.mapBoundaries.x;
+        shouldDrawTwice = true;
     }
 
-    if((sprite_.y + angleSprites[current].h) > data.mapBoundaries.y)
+    if((position.y + sprite_.h) > data.mapBoundaries.y)
     {
-        overlap.y = sprite_.y - data.mapBoundaries.y;
+        overlap.y =  position.y - data.mapBoundaries.y;
+        shouldDrawTwice = true;
     }
-    drawSprite((Sprite*)angleSprites[current].getSprite(),
-                    sprite_.x, sprite_.y);
 
-    drawSprite((Sprite*)angleSprites[current].getSprite(),
-               overlap.x ? overlap.x : sprite_.x,
-               overlap.y ? overlap.y : sprite_.y);
+
+    drawSprite((Sprite*)sprite_.getSprite(),
+                    screenSpace.x,
+                    screenSpace.y);
+
+    if(shouldDrawTwice) {
+        util::mapToScreenSpace(screenSpaceOverlap,
+                               data.screenSize, overlap,
+                               data.mapBoundaries);
+        drawSprite((Sprite*)sprite_.getSprite(),
+                    overlap.x ? screenSpaceOverlap.x :
+                                screenSpace.x,
+                    overlap.y ? screenSpaceOverlap.y :
+                                screenSpace.y);
+    }
 }
 
 void Player::update(const UpdateData& data)
@@ -155,5 +187,11 @@ void Player::update(const UpdateData& data)
 void Player::unUpdate(const UpdateData& data)
 {
 
+}
+
+
+size_t Player::getCurrentSpriteIndex() const
+{
+    return current;
 }
 

@@ -60,7 +60,8 @@ public:
         upData.player = player.get();
         getScreenSize(upData.screenSize.x, upData.screenSize.y);
 
-        map = std::make_unique<Map>(10, 2, upData);
+        map = std::make_unique<Map>(initData->num_asteroids,
+                                    initData->num_ammo, upData);
 
         return true;
     }
@@ -77,7 +78,7 @@ public:
 
         player->update(upData);
 
-        player->draw();
+        player->draw(upData);
 
         map->update(upData);
 

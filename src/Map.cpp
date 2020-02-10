@@ -29,12 +29,9 @@ Map::Map(int asteroids_qty, int max_bullets,
     Vector2D<float> playerPos;
     player.getMiddlePoint(playerPos.x, playerPos.y);
 
-    int density = ((mapSize.y - (int)playerWidth) *
-                   (mapSize.x - (int)playerWidth)) / asteroids_qty;
-
-
-
     std::uniform_int_distribution<int> distint(1, 3);
+    std::uniform_int_distribution<int> distx(0, data.mapBoundaries.x);
+    std::uniform_int_distribution<int> disty(0, data.mapBoundaries.y);
     std::uniform_real_distribution<float> distfloat(-Asteroid::maxSpeed,
                                                      Asteroid::maxSpeed);
     std::mt19937 random;
@@ -43,12 +40,11 @@ Map::Map(int asteroids_qty, int max_bullets,
 
     U_Sprite small("data\\small_asteroid.png");
     U_Sprite big("data\\big_asteroid.png");
-    for(int i = 0; i < mapSize.y * mapSize.x; i += density) {
+    for(int i = 0; i < asteroids_qty; ++i) {
         Vector2D<int> mapIndeces;
 
-        if(i / density == asteroids_qty) break;
-
-        util::oneIndexIntoTwo(i, mapSize.x, mapIndeces.y, mapIndeces.x);
+        mapIndeces.x = distx(random);
+        mapIndeces.y = disty(random);
 
         if(util::withinArea(mapIndeces, (Vector2D<int>)playerPos, playerWidth)) {
             continue;
@@ -110,7 +106,7 @@ void Map::update(const UpdateData& data)
             data.player->getRotation(whatever.x, whatever.y, angle);
 
             // Clamps it to be 8 directions only
-            angle = (angle / (Constants::pi / 4)) * (Constants::pi / 4);
+            angle = data.player->getCurrentSpriteIndex() * (Constants::pi / 4);
 
             data.player->getMovement(speed, whatever);
 
@@ -129,6 +125,8 @@ void Map::update(const UpdateData& data)
     std::vector<Asteroid> temp;
     temp.reserve(2);
 
+    // Pushing into main vector invalidates iterators
+    // To keep being UB free you've got to copy it over instead
     std::vector<Asteroid> temp2; // YaY unique and well thought out names
 
     for(auto& a : asteroids) {
@@ -183,7 +181,7 @@ void Map::update(const UpdateData& data)
         remainingAsteroids += 1;
     }
 
-    std::sort(asteroids.begin(), asteroids.end());
+    //std::sort(asteroids.begin(), asteroids.end());
 
 
     Vector2D<float> pos;

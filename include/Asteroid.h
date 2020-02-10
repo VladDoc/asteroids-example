@@ -31,7 +31,7 @@ class Asteroid : public GameObject
         virtual std::vector<Asteroid> breakInPieces(const GameObject& obj);
         virtual void collide(Asteroid&);
 
-        static constexpr float maxSpeed = 0.3f;
+        static constexpr float maxSpeed = 0.5f;
         friend bool operator<(const Asteroid& a, const Asteroid& b);
     protected:
         AsteroidType type;

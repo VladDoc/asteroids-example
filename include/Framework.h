@@ -13,22 +13,6 @@
 #endif
 
 
-// Bonus for any found bugs in the framework!
-
-// I wish it wouldn't be so scarce on functionality.
-// It lacks:
-// 1)   Ability to scale sprites.
-//      (scaling asteroid sprites for some
-//         fake 3d effect would have been awesome).
-// 2)   Ability to access pixel data within the sprite.
-//      (For procedural generation, gradients and stuff)
-// 3)   Ability to access screen for various effects.
-//      (I wanted to do an animated flickering stars background,
-//      but I couldn't do it)
-// 4)   Also some transform/rotate functionality would be neat.
-//      (I was unable to rotate asteroids/spaceship which is a shame)
-
-
 class Sprite;
 
 FRAMEWORK_API Sprite* createSprite(const char* path);

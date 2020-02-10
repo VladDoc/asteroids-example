@@ -29,7 +29,7 @@ namespace util
     inline float clampLooping(float value, float min, float max) {
         int howManyTimesMax = value / max;
         return value >= 0 ? (value - (howManyTimesMax * max))
-                         : max + (value - (howManyTimesMax * max));
+                          : max + (value - (howManyTimesMax * max));
 
     }
 
@@ -45,7 +45,8 @@ namespace util
     }
 
 
-    inline float angleBetweenPoints(Vector2D<float> a, Vector2D<float> b)
+    inline float angleBetweenPoints(const Vector2D<float>& a,
+                                    const Vector2D<float>& b)
     {
         float deltaY = std::abs(b.y - a.y);
         float deltaX = std::abs(b.x - a.x);
@@ -124,6 +125,21 @@ namespace util
         }
 
         return false;
+    }
+
+    inline void mapToScreenSpace(Vector2D<float>& screen,
+                                 const Vector2D<float>& screenSize,
+                                 const Vector2D<float>& map,
+                                 const Vector2D<float>& mapSize)
+    {
+        Vector2D<float> zeroOnScreen;
+
+        zeroOnScreen.x = mapSize.x / 2 - screenSize.x / 2;
+        zeroOnScreen.y = mapSize.y / 2 - screenSize.y / 2;
+
+
+        screen.x = map.x - zeroOnScreen.x;
+        screen.y = map.y - zeroOnScreen.y;
     }
 }
 

@@ -9,12 +9,14 @@
 
 
 Map::Map(int asteroids_qty, int max_bullets,
-         const Vector2D<int>& mapSize,
-         const Player& player)
+         const UpdateData& data)
 {
-    this->mapSize = mapSize;
+    Player& player = *data.player;
+    this->mapSize = data.mapBoundaries;
 
     this->bullets.resize(max_bullets, Bullet());
+
+    this->asteroids.reserve(asteroids_qty);
 
     for(auto& a : bullets) {
         a.setEmpty(true);
@@ -22,12 +24,13 @@ Map::Map(int asteroids_qty, int max_bullets,
 
     float playerWidth;
     player.getCollisionRadius(playerWidth);
-    playerWidth *= 3;
+    playerWidth *= 5;
 
     Vector2D<float> playerPos;
     player.getMiddlePoint(playerPos.x, playerPos.y);
 
-    int density = (mapSize.y - (int)playerWidth) * (mapSize.x - (int)playerWidth) / asteroids_qty;
+    int density = ((mapSize.y - (int)playerWidth) *
+                   (mapSize.x - (int)playerWidth)) / asteroids_qty;
 
 
 
@@ -42,6 +45,9 @@ Map::Map(int asteroids_qty, int max_bullets,
     U_Sprite big("data\\big_asteroid.png");
     for(int i = 0; i < mapSize.y * mapSize.x; i += density) {
         Vector2D<int> mapIndeces;
+
+        if(i / density == asteroids_qty) break;
+
         util::oneIndexIntoTwo(i, mapSize.x, mapIndeces.y, mapIndeces.x);
 
         if(util::withinArea(mapIndeces, (Vector2D<int>)playerPos, playerWidth)) {
@@ -54,12 +60,12 @@ Map::Map(int asteroids_qty, int max_bullets,
             asteroids.push_back(Asteroid(small, AsteroidType::SMALL));
         }
 
-        asteroids.back().setPosition(mapIndeces.x, mapIndeces.y);
+        asteroids.back().setMiddlePoint(mapIndeces.x, mapIndeces.y);
         asteroids.back().setMovement({distfloat(random), distfloat(random)},
                                      {0,0});
     }
     std::sort(asteroids.begin(), asteroids.end());
-    remainingAsteroids = asteroids_qty + 2;
+    remainingAsteroids = asteroids.size();
     remainingBullets = max_bullets;
 }
 
@@ -120,6 +126,11 @@ void Map::update(const UpdateData& data)
         }
     }
 
+    std::vector<Asteroid> temp;
+    temp.reserve(2);
+
+    std::vector<Asteroid> temp2; // YaY unique and well thought out names
+
     for(auto& a : asteroids) {
         if(a.empty()) continue;
         a.update(data);
@@ -127,12 +138,49 @@ void Map::update(const UpdateData& data)
         for(auto& b : bullets) {
             if(b.empty()) continue;
             if(a.checkCollision(b)) {
-                a.setEmpty(true);
                 b.setEmpty(true);
                 remainingAsteroids -= 1;
                 remainingBullets += 1;
+
+                temp = a.breakInPieces(b);
+
+                for(auto& aa : temp) {
+                    temp2.push_back(aa);
+                }
             }
         }
+
+        Vector2D<float> pos;
+        float radius;
+
+        a.getPosition(pos.x, pos.y);
+        a.getCollisionRadius(radius);
+
+        Asteroid lower;
+
+        lower.setPosition(pos.x - radius,
+                          pos.y - radius);
+
+        Asteroid upper;
+
+        upper.setPosition(pos.x + radius,
+                          pos.y + radius);
+
+        auto aa = std::lower_bound(asteroids.begin(), asteroids.end(), lower);
+        auto bb = std::upper_bound(aa, asteroids.end(), upper);
+
+        for(; aa != bb; aa++) {
+            if(aa->empty()) continue;
+            if(a.checkCollision(*aa)) {
+                a.collide(*aa);
+            }
+        }
+    }
+
+    for(auto& aa : temp2) {
+        if(aa.empty()) continue;
+        asteroids.push_back(aa);
+        remainingAsteroids += 1;
     }
 
     std::sort(asteroids.begin(), asteroids.end());
@@ -163,6 +211,7 @@ void Map::update(const UpdateData& data)
             data.gameOver = true;
         }
     }
+
 }
 
 void Map::draw(const UpdateData& data)

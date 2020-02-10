@@ -12,7 +12,9 @@
 enum class AsteroidType : uint8_t
 {
     SMALL,
-    BIG
+    BIG,
+    COUNT,
+    NONE
 };
 
 class Asteroid : public GameObject
@@ -27,8 +29,9 @@ class Asteroid : public GameObject
         virtual void update(const UpdateData& data) override;
         virtual void unUpdate(const UpdateData& data) override;
         virtual std::vector<Asteroid> breakInPieces(const GameObject& obj);
+        virtual void collide(Asteroid&);
 
-        static constexpr float maxSpeed = 0.05f;
+        static constexpr float maxSpeed = 0.3f;
         friend bool operator<(const Asteroid& a, const Asteroid& b);
     protected:
         AsteroidType type;

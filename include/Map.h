@@ -13,8 +13,7 @@ class Map
 {
     public:
         Map(int asteroids_qty, int max_bullets,
-            const Vector2D<int>& mapSize,
-            const Player& player);
+            const UpdateData& data);
 
         virtual ~Map();
         virtual void update(const UpdateData& data);

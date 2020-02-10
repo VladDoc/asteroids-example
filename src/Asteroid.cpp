@@ -1,5 +1,7 @@
 #include <cstdlib>
 #include <cmath>
+#include <cstdio>
+#include <random>
 
 #include "Asteroid.h"
 #include "Constants.h"
@@ -14,6 +16,8 @@ static const std::map<const AsteroidType, std::string> asteroidSpritePaths =
         {AsteroidType::SMALL, "data\\small_asteroid.png"}
 };
 
+static const float masses[(int)AsteroidType::COUNT] = {10.0f, 30.0f};
+
 Asteroid::Asteroid()
 {
 
@@ -27,18 +31,21 @@ Asteroid::Asteroid(const char* path) :
     } else {
         this->type = AsteroidType::BIG;
     }
+    this->mass = masses[(uint8_t)type];
 }
 
 Asteroid::Asteroid(const AsteroidType type) :
     GameObject(asteroidSpritePaths.at(type).c_str())
 {
     this->type = type;
+    this->mass = masses[(uint8_t)type];
 }
 
 Asteroid::Asteroid(const U_Sprite& sprite, const AsteroidType type) :
     GameObject(sprite)
 {
     this->type = type;
+    this->mass = masses[(uint8_t)type];
 }
 
 Asteroid::~Asteroid()
@@ -60,8 +67,8 @@ void Asteroid::update(const UpdateData& data)
 
     position = position - motionDelta;
 
-    velocity.x += accel.x * data.frametime;
-    velocity.y += accel.y * data.frametime;
+    velocity.x += accel.x * data.frametime / mass;
+    velocity.y += accel.y * data.frametime / mass;
 
     position = position + velocity;
 
@@ -89,8 +96,8 @@ void Asteroid::unUpdate(const UpdateData& data)
 
     position = position + motionDelta;
 
-    velocity.x -= accel.x * data.frametime;
-    velocity.y -= accel.y * data.frametime;
+    velocity.x -= accel.x * data.frametime / mass;
+    velocity.y -= accel.y * data.frametime / mass;
 
     position = position + velocity;
 
@@ -104,21 +111,31 @@ void Asteroid::unUpdate(const UpdateData& data)
 
 std::vector<Asteroid> Asteroid::breakInPieces(const GameObject& obj)
 {
+    this->setEmpty(true);
     if(this->type == AsteroidType::SMALL) {
-        this->setEmpty(true);
         return std::vector<Asteroid>();
     } else {
         std::vector<Asteroid> asteroids;
 
-        asteroids.push_back(Asteroid(this->getU_Sprite(), AsteroidType::SMALL));
-        asteroids.push_back(Asteroid(this->getU_Sprite(), AsteroidType::SMALL));
+        asteroids.push_back(Asteroid(AsteroidType::SMALL));
+        asteroids.push_back(Asteroid(AsteroidType::SMALL));
 
         asteroids[0].setPosition(this->position.x, this->position.y);
         asteroids[1].setPosition(this->position.x, this->position.y);
 
-        float angle = Constants::pi / ((float)rand() / (RAND_MAX + 1));
+        asteroids[0].setEmpty(false);
+        asteroids[1].setEmpty(false);
 
-        float speed = 1.0f / ((float)rand() / (RAND_MAX + 1));
+
+        std::uniform_real_distribution<float> distangle(0.0f,
+                                                     Constants::pi * 2);
+        std::uniform_real_distribution<float> distspeed(0.0f, Asteroid::maxSpeed);
+
+        std::mt19937 random;
+        random.seed(time(NULL));
+        float angle = distangle(random);
+
+        float speed = distspeed(random);
 
         Vector2D<float> obj_vel;
         Vector2D<float> obj_acc;
@@ -145,4 +162,35 @@ bool operator<(const Asteroid& a, const Asteroid& b)
     b.getPosition(b_pos.x, b_pos.y);
 
     return !a.empty() && a_pos < b_pos;
+}
+
+void Asteroid::collide(Asteroid& a)
+{
+    Vector2D<float> vel1;
+    Vector2D<float> vel2;
+
+    vel1.x = (this->velocity.x * (this->mass - a.mass) +
+             (2 * a.mass * a.velocity.x)) / (this->mass + a.mass);
+    vel1.y = (this->velocity.y * (this->mass - a.mass) +
+             (2 * a.mass * a.velocity.y)) / (this->mass + a.mass);
+    vel2.x = (a.velocity.x * (a.mass - this->mass) +
+             (2 * this->mass * this->velocity.x)) / (this->mass + a.mass);
+    vel2.y = (a.velocity.y * (a.mass - this->mass) +
+             (2 * this->mass * this->velocity.y)) / (this->mass + a.mass);
+
+    Vector2D<float> pos1;
+    Vector2D<float> pos2;
+
+    this->getMiddlePoint(pos1.x, pos1.y);
+    a.getMiddlePoint(pos2.x, pos2.y);
+
+    this->setMovement(vel1, {0,0});
+    a.setMovement(vel2, {0, 0});
+
+    pos1 += vel1;
+    pos2 += vel2;
+
+    this->setMiddlePoint(pos1.x, pos1.y);
+    a.setMiddlePoint(pos2.x, pos2.y);
+
 }

@@ -8,6 +8,7 @@ static const char* path = "data\\bullet.png";
 
 Bullet::Bullet() : GameObject(path)
 {
+    this->collision_radius *= 4;
 }
 
 Bullet::~Bullet()

@@ -22,6 +22,7 @@ class UpdateData
         Vector2D<int> mouseMotionDelta;
         Vector2D<int> mouseCoords;
         Vector2D<int> mapBoundaries;
+        Vector2D<int> screenSize;
         mutable ControlState controls; // Key presses
 
         mutable bool gameOver = false;

@@ -40,7 +40,7 @@ Player::Player() : GameObject(paths[0])
 
     current = 0;
 
-    collision_radius *= 0.65;
+    //collision_radius *= 0.65;
 }
 
 Player::Player(float x, float y, float angle) : GameObject(paths[0])
@@ -96,26 +96,26 @@ void Player::update(const UpdateData& data)
 
     if(data.controls.isRightHeld) {
         sprite_angle += util::interpolateValue(data.frametime,
-                                               util::degToRad(5.0f));
+                                               util::degToRad(45.0f));
     }
     if(data.controls.isLeftHeld)  {
         sprite_angle -= util::interpolateValue(data.frametime,
-                                               util::degToRad(5.0f));
+                                               util::degToRad(45.0f));
     }
 
     sprite_angle = util::clampLooping(sprite_angle, 0.0f,
                                       2 * pi - 0.00001); // For extra safety
 
     if(data.controls.isUpHeld)    {
-        accel.x = util::interpolateValue(util::uintPow(data.frametime, 2),
+        accel.x = util::interpolateValue(data.frametime,
                                           sinf(sprite_angle) * defAccel);
-        accel.y = util::interpolateValue(util::uintPow(data.frametime, 2),
+        accel.y = util::interpolateValue(data.frametime,
                                          -cosf(sprite_angle) * defAccel);
     }
     if(data.controls.isDownHeld)  {
-        accel.x = util::interpolateValue(util::uintPow(data.frametime, 2),
+        accel.x = util::interpolateValue(data.frametime,
                                          -sinf(sprite_angle) * defAccel);
-        accel.y = util::interpolateValue(util::uintPow(data.frametime, 2),
+        accel.y = util::interpolateValue(data.frametime,
                                           cosf(sprite_angle) * defAccel);
     }
 
@@ -144,6 +144,8 @@ void Player::update(const UpdateData& data)
     //whichSprite = util::clampLooping(whichSprite, 0, angles-1);
 
     current = whichSprite;
+
+    //if(position.x < data.)
 
 //    sprite_.x = position.x;
 //    sprite_.y = position.y;

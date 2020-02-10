@@ -14,13 +14,13 @@ GameObject::GameObject()
 
 GameObject::GameObject(const char* sprite_path) : sprite_(sprite_path)
 {
-    this->collision_radius = std::hypot(sprite_.w / 2, sprite_.h / 2);
+    this->collision_radius = std::hypot(sprite_.w / 2, sprite_.h / 2) * 0.75f;
 }
 
 
 GameObject::GameObject(const U_Sprite& ref) : sprite_(ref)
 {
-    this->collision_radius = std::hypot(sprite_.w / 2, sprite_.h / 2);
+    this->collision_radius = std::hypot(sprite_.w / 2, sprite_.h / 2) * 0.75f;
 }
 
 
@@ -60,22 +60,43 @@ void GameObject::draw(const UpdateData& data) const
 {
     if(sprite_.empty()) return;
     // Draw two sprites if object crosses the line
-    Vector2D<int> overlap{0,0};
-    if((sprite_.x + sprite_.w) > data.mapBoundaries.x)
+    Vector2D<float> overlap{0,0};
+
+    Vector2D<float> screenSpaceOverlap;
+
+    Vector2D<float> screenSpace;
+
+    util::mapToScreenSpace(screenSpace, data.screenSize,
+                           position, data.mapBoundaries);
+
+    bool shouldDrawTwice = false;
+    if((position.x + sprite_.w) > data.mapBoundaries.x)
     {
-        overlap.x = sprite_.x - data.mapBoundaries.x;
+        overlap.x = position.x - data.mapBoundaries.x;
+        shouldDrawTwice = true;
     }
 
-    if((sprite_.y + sprite_.h) > data.mapBoundaries.y)
+    if((position.y + sprite_.h) > data.mapBoundaries.y)
     {
-        overlap.y = sprite_.y - data.mapBoundaries.y;
+        overlap.y =  position.y - data.mapBoundaries.y;
+        shouldDrawTwice = true;
     }
-    drawSprite((Sprite*)sprite_.getSprite(),
-                    sprite_.x, sprite_.y);
+
 
     drawSprite((Sprite*)sprite_.getSprite(),
-               overlap.x ? overlap.x : sprite_.x,
-               overlap.y ? overlap.y : sprite_.y);
+                    screenSpace.x,
+                    screenSpace.y);
+
+    if(shouldDrawTwice) {
+        util::mapToScreenSpace(screenSpaceOverlap,
+                               data.screenSize, overlap,
+                               data.mapBoundaries);
+        drawSprite((Sprite*)sprite_.getSprite(),
+                    overlap.x ? screenSpaceOverlap.x :
+                                screenSpace.x,
+                    overlap.y ? screenSpaceOverlap.y :
+                                screenSpace.y);
+    }
 }
 
 bool GameObject::empty() const
@@ -124,9 +145,8 @@ void GameObject::setMiddlePoint(float x, float y)
     position.x = x - sprite_.w / 2;
     position.y = y - sprite_.h / 2;
 
-    sprite_.x = (int)x;
-    sprite_.y = (int)y;
-
+    sprite_.x = (int)position.x;
+    sprite_.y = (int)position.y;
 }
 
 void GameObject::getMiddlePoint(float& x, float& y) const

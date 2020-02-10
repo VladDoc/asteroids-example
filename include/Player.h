@@ -17,9 +17,8 @@ class Player : public GameObject
         virtual void draw() const override;
         virtual void draw(const UpdateData& data) const override;
 
-        constexpr static const float defSpeed = 0.1f;
-        constexpr static const float defAccel = 0.0001f;
-        constexpr static const float maxSpeed = 0.001f;
+        constexpr static const float defAccel = 0.1f;
+        constexpr static const float maxSpeed = 0.5f;
     protected:
         static const int angles = 8;
         U_Sprite angleSprites[angles];

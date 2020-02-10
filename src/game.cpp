@@ -3,6 +3,8 @@
 #include <memory>
 #include <ctime>
 
+#include <SDL2/SDL.h>
+
 #include "Framework.h"
 #include "BackGround.h"
 #include "U_Sprite.h"
@@ -12,9 +14,12 @@
 #include "Constants.h"
 #include "stdoutRedirect.h"
 #include "Map.h"
+#include "InitData.h"
 
-/* Test Framework realization */
-class MyFramework : public Framework {
+
+static std::unique_ptr<InitData> initData;
+
+class AsteroidsGame : public Framework {
 
     std::unique_ptr<BackGround> bg;
 
@@ -31,8 +36,8 @@ public:
 
     virtual void PreInit(int& width, int& height, bool& fullscreen)
     {
-        width = 800;
-        height = 600;
+        width = initData->windowSize.x;
+        height = initData->windowSize.y;
         fullscreen = false;
     }
 
@@ -44,27 +49,24 @@ public:
         bg = std::make_unique<BackGround>();
 
         player = std::make_unique<Player>();
-        player->setMiddlePoint(400, 300);
+        player->setMiddlePoint(initData->windowSize.x / 2,
+                               initData->windowSize.y / 2);
 
         cursor = std::make_unique<U_Sprite>("data/circle.tga");
 
-        upData.mapBoundaries.x = 800;
-        upData.mapBoundaries.y = 600;
-
-        map = std::make_unique<Map>(10, 2, upData.mapBoundaries, *player);
-
+        upData.mapBoundaries.x = initData->mapSize.x;
+        upData.mapBoundaries.y = initData->mapSize.y;
         upData.frametime = 15;
         upData.player = player.get();
-        upData.controls.leftMouseButton = true;
+        getScreenSize(upData.screenSize.x, upData.screenSize.y);
 
-        getScreenSize(upData.mapBoundaries.x, upData.mapBoundaries.y);
+        map = std::make_unique<Map>(10, 2, upData);
 
         return true;
     }
 
     virtual void Close()
     {
-        Map& aMap = *map;
     }
 
     // Update
@@ -92,7 +94,11 @@ public:
 
         time_t end = clock();
 
-        upData.frametime = (end - start) > 16 ? (end - start) : 16;
+        upData.frametime = (end - start);
+
+        SDL_Delay(upData.frametime < 16 ? 16 - upData.frametime : 0);
+
+        upData.frametime = upData.frametime < 16 ? 16 : upData.frametime;
         return false;
     }
 
@@ -171,10 +177,9 @@ protected:
     }
 };
 
-
-int main(int argc, char *argv[])
+int main(int argc, char** argv)
 {
-
+    initData = std::make_unique<InitData>(argc, argv);
     switchStderr("errors.txt");
-    return run(new MyFramework);
+    return run(new AsteroidsGame);
 }

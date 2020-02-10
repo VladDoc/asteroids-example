@@ -12,7 +12,7 @@ class Bullet : public GameObject
 
         virtual void update(const UpdateData&) override;
         virtual void unUpdate(const UpdateData&) override;
-        constexpr static float defSpeed = 1.0f;
+        constexpr static float defSpeed = 20.0f;
     protected:
     private:
 };
